@@ -1,0 +1,4 @@
+npm i mongoose
+npm i Zod
+Resend Email Api Key = re_7aHNzLnG_2HAJvq5qfmhzkt6HaFKniNXz
+npm install resend
