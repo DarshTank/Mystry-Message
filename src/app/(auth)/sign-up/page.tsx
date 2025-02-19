@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
+import { useDebounceValue, useDebounceCallback } from "usehooks-ts";
 // import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -30,7 +30,7 @@ const page = () => {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const debounceUsername = useDebounceValue(username, 300);
+  const debounce = useDebounceCallback(setUsername, 300);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -46,15 +46,16 @@ const page = () => {
 
   useEffect(() => {
     const checkUsernameUnique = async () => {
-      if (debounceUsername) {
+      if (username) {
         setIsCheckingUsername(true);
         setUsernameMessage("");
         try {
           const response = await axios.get(
-            `/api/check-username-unique?username=${debounceUsername}`
+            `/api/check-username-unique?username=${username}`
           );
-          console.log(response);
-
+          //console.log(response);
+          //let message = response.data.message;
+          // setUsernameMessage(message);
           setUsernameMessage(response.data.message);
         } catch (error) {
           const axiosError = error as AxiosError<ApiResponse>;
@@ -68,7 +69,7 @@ const page = () => {
       }
     };
     checkUsernameUnique();
-  }, [debounceUsername]);
+  }, [username]);
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
@@ -95,14 +96,15 @@ const page = () => {
 
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg mx-auto">
-      <div className="w-full max-w-ms p-8 "></div>
+      {/* <div className="w-full max-w-ms p-8 "></div> */}
       <div className="w-full max-w-ms p-8 space-y-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
             Join Mystry Message
           </h1>
           <hr />
-          <p className="mb-4">Sign up to start your anonymous advanture</p>
+          {/* <br /> */}
+          <p className="mt-5">Sign up to start your anonymous advanture</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -118,12 +120,16 @@ const page = () => {
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
-                        setUsername(e.target.value);
+                        debounce(e.target.value);
                       }}
                     />
                   </FormControl>
                   {isCheckingUsername && <Loader2 className="animate-spin" />}
-                  
+                  <p
+                    className={`text-sm ${usernameMessage === "Username is unique" ? "text-green-500" : "text-red-500"}`}
+                  >
+                    {usernameMessage}
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
