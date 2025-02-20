@@ -1,45 +1,45 @@
-// import { openai } from '@ai-sdk/openai';
-// import { streamText } from 'ai';
-
-// // Allow streaming responses up to 30 seconds
-// export const maxDuration = 30;
-
-// export async function POST(req: Request) {
-//   const { messages } = await req.json();
-
-//   const result = streamText({
-//     model: openai('gpt-4o'),
-//     messages,
-//   });
-
-//   return result.toDataStreamResponse();
-// }
 import { NextResponse } from "next/server";
-import ollama from "ollama"; // Import Ollama SDK
+import Groq from "groq-sdk";
 
-export const runtime = "edge";
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY, // Ensure your API key is set in environment variables
+});
 
-export async function POST(req: Request) {
+export const GET = async () => {
   try {
-    const prompt =
-      "Create a list of three open-ended and engaging questions formatted as a single string. Each question should be separated by '||'. These questions are for an anonymous social messaging platform, like Qooh.me, and should be suitable for a diverse audience. Avoid personal or sensitive topics, focusing instead on universal themes that encourage friendly interaction.";
+    const chatCompletion = await getGroqChatCompletion();
+    const questions =
+      chatCompletion.choices[0]?.message?.content || "No questions generated.";
+    console.log(questions);
 
-    // Generate text using Llama (via Ollama)
-    const response = await ollama.generate({
-      model: "llama3", // Ensure you're using the correct model
-      prompt,
-    });
-
-    return NextResponse.json({ result: response.response }); // Return the generated response
+    return NextResponse.json({ questions }, { status: 200 });
   } catch (error) {
-    console.error("Error:", error);
-
+    console.error("Error generating questions:", error);
     return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
+      { error: "Failed to generate questions" },
       { status: 500 }
     );
   }
-}
+};
+
+const getGroqChatCompletion = async () => {
+  return groq.chat.completions.create({
+    messages: [
+      {
+        role: "system",
+        content: "You are a helpful assistant.",
+      },
+      {
+        role: "user",
+        content:
+          "Create a list of three open-ended and engaging questions formatted as a single string. Each question should be separated by '||'. These questions are for an anonymous social messaging platform, like Qooh.me, and should be suitable for a diverse audience. Avoid personal or sensitive topics, focusing instead on universal themes that encourage friendly interaction.",
+      },
+    ],
+    model: "mixtral-8x7b-32768",
+    temperature: 0.5,
+    max_completion_tokens: 1024,
+    top_p: 1,
+    stop: null,
+    stream: false,
+  });
+};

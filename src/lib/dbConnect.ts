@@ -2,30 +2,31 @@ import { log } from "console";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config(); 
-// import .env from "dotenv";
+dotenv.config();
 
 type ConnectObject = {
-  isConnected?: number; // Renamed here to match the reference in dbConnect
+  isConnected?: number; // This should be a boolean if you're checking connection state
 };
 
 const connection: ConnectObject = {};
 
 async function dbConnect(): Promise<void> {
-  if (connection.isConnected) {
+  if (connection.isConnected === 1) {
     console.log("Already Connected to Database");
     return;
   }
-  // Your database connection logic here
 
   try {
-    const db = await mongoose.connect(process.env.MONGODB_URI || "", {});
+    const db = await mongoose.connect(process.env.MONGODB_URI || "", {
+      retryWrites: true, // Ensure retryWrites is explicitly set
+      w: "majority", // Ensure write concern is set appropriately
+    });
 
     connection.isConnected = db.connections[0].readyState;
 
-    console.log("DB Connected Sucessfully : dbConnect.ts");
+    console.log("DB Connected Successfully: dbConnect.ts");
   } catch (err) {
-    console.log("DB Connection Failed: dbConnect.ts", err);
+    console.error("DB Connection Failed: dbConnect.ts", err);
     process.exit(1);
   }
 }

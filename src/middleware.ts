@@ -40,12 +40,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // If the user is not authenticated and trying to access a protected route, redirect to sign-in
-  // if (!token && url.pathname.startsWith("/dashboard")) {
-  //   return NextResponse.redirect(new URL("/", request.url));
-  // }
-  if (!token && url.pathname.startsWith("/sign")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (!token && url.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
+  // if (!token && url.pathname.startsWith("/dash")) {
+  //   return NextResponse.redirect(new URL("/dashboard", request.url));
+  // }
 
   // Allow other requests to proceed
   return NextResponse.next();
