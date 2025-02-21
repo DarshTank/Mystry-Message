@@ -1,18 +1,22 @@
+// app/layout.tsx (Root Layout)
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import AuthProvider from "@/context/AuthProvider";
-import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -27,15 +31,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <AuthProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+      <head />
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <AuthProvider>
           <Navbar />
           {children}
-          <Toaster />
-        </body>
-      </AuthProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
