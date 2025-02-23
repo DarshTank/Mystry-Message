@@ -54,7 +54,9 @@ export default function SendMessage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedMessages, setGeneratedMessages] = useState(initialMessageString);
+  const [generatedMessages, setGeneratedMessages] =
+    useState(initialMessageString);
+  const [heading, setHeading] = useState(false);
 
   const onSubmit = async (data: z.infer<typeof MessageSchema>) => {
     setIsLoading(true);
@@ -88,9 +90,10 @@ export default function SendMessage() {
       const response = await axios.get<ApiResponse>("/api/suggest-questions");
 
       // Check if the response data is valid JSON
-      if (response.data && typeof response.data === 'object') {
+      if (response.data && typeof response.data === "object") {
         console.log("API Response:", response.data); // Debugging: Log the API response
-        setGeneratedMessages(response.data.message);
+        setGeneratedMessages(response.data.aitext);
+        setHeading(true);
         toast({
           title: "Questions Generated",
           description: "New questions have been generated using AI.",
@@ -110,7 +113,8 @@ export default function SendMessage() {
       } else {
         toast({
           title: "Error",
-          description: axiosError.response?.data.message ?? "Failed to generate questions",
+          description:
+            axiosError.response?.data.message ?? "Failed to generate questions",
           variant: "destructive",
         });
       }
@@ -131,7 +135,7 @@ export default function SendMessage() {
             name="content"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Send Anonymous Message to @{username}</FormLabel>
+                <FormLabel className="text-1xl">Send Anonymous Message to <b> @{username}</b></FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Write your anonymous message here"
@@ -160,25 +164,13 @@ export default function SendMessage() {
 
       <div className="space-y-4 my-8">
         <div className="space-y-2">
-          <p>Click on any message below to select it.</p>
-          <Button
-            onClick={() => !isGenerating ? generateQuestions() : null}
-            disabled={isGenerating}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              "Generate Questions using AI"
-            )}
-          </Button>
+          <p>You can Also use this Default/AI-Generated messages insted :</p>
         </div>
         <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Demo Messages</h3>
+          <CardHeader className="bg-gray-800 mb-5 rounded">
+            <h3 className="text-xl font-semibold text-white">
+              {heading ? "AI Generated Text" : "Default Messages"}
+            </h3>
           </CardHeader>
           <CardContent className="flex flex-col space-y-4">
             {parseStringMessages(generatedMessages).map((message, index) => (
@@ -192,6 +184,24 @@ export default function SendMessage() {
             ))}
           </CardContent>
         </Card>
+        <Button
+          onClick={() =>
+            !isGenerating
+              ? generateQuestions()
+              : parseStringMessages(initialMessageString)
+          }
+          disabled={isGenerating}
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            "Generate Questions using AI"
+          )}
+        </Button>
       </div>
       <Separator className="my-6" />
       <div className="text-center">
