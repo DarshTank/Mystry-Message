@@ -1,40 +1,55 @@
-"use client";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Mail } from 'lucide-react'; // Assuming you have an icon for messages
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Autoplay from 'embla-carousel-autoplay';
+import messages from '@/messages.json';
+
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel";
-import AutoPlay from "embla-carousel-autoplay";
-import messages from "@/messages.json";
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
-const Home = () => {
+export default function Home() {
   return (
     <>
-      <main className="flex-grow flex flex-col items-center justify-center container mx-auto px-4 md:px-24 py-0 min-h-screen w-full bg-white">
-        <section className="text-center mb-8 md:mb-12 mt-0 w-full">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-black shadow-lg p-4">
-            Dive into the World of Anonymous Conversations
+      {/* Main content */}
+      <main className="flex-grow flex flex-col items-center justify-center px-4 md:px-24 py-12 bg-gray-800 text-white w-full min-h-screen">
+      <section className="text-center mb-8 md:mb-12 w-full shadow-lg rounded-lg p-6 bg-gray-700">
+          <h1 className="text-3xl md:text-5xl font-bold">
+            Dive into the World of Anonymous Feedback
           </h1>
-          <p className="mt-3 md:mt-4 text-base md:text-lg text-gray-600">
-            Explore Mystry Message - Where your identity remains a secret.
+          <p className="mt-3 md:mt-4 text-base md:text-lg">
+            True Feedback - Where your identity remains a secret.
           </p>
         </section>
+
+        {/* Carousel for Messages */}
         <Carousel
-          plugins={[AutoPlay({ delay: 2000 })]}
-          className="w-full max-w-md"
+          plugins={[Autoplay({ delay: 3000 })]}
+          className="w-full max-w-lg md:max-w-xl"
         >
           <CarouselContent>
             {messages.map((message, index) => (
-              <CarouselItem key={index} className="p-2">
-                <Card className="shadow-md rounded-lg transform transition-transform hover:scale-105 bg-white border border-gray-200">
-                  <CardHeader className="text-lg font-semibold text-gray-800 p-4">
-                    {message.title}
+              <CarouselItem key={index} className="p-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{message.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="flex items-center justify-center p-4">
-                    <span className="text-base font-semibold text-gray-700">
-                      {message.content}
-                    </span>
+                  <CardContent className="flex flex-col md:flex-row items-start space-y-2 md:space-y-0 md:space-x-4">
+                    <Mail className="flex-shrink-0" />
+                    <div>
+                      <p>{message.content}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {message.received}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </CarouselItem>
@@ -42,11 +57,11 @@ const Home = () => {
           </CarouselContent>
         </Carousel>
       </main>
-      <footer className="text-center p-4 md:p-6 bg-gray-200 text-gray-800 shadow-inner w-full">
-        © 2025 Mystry Message. All Rights Reserved.
+
+      {/* Footer */}
+      <footer className="text-center p-4 md:p-6 bg-gray-900 text-white">
+        © 2023 True Feedback. All rights reserved.
       </footer>
     </>
   );
-};
-
-export default Home;
+}

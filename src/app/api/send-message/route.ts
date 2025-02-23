@@ -1,7 +1,7 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User.model";
 import { Message } from "@/model/User.model";
-import { request } from "http";
+// import { request } from "http";
 
 export async function POST(request: Request) {
   await dbConnect();
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         success: true,
         message: "Message sent successfully : send-messages",
       },
-      { status: 403 }
+      { status: 200 }
     );
   } catch (error) {
     console.log("Error adding messages", error);

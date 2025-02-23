@@ -1,96 +1,205 @@
-// import { useState } from "react";
-// import { useRouter } from "next/router";
-// import axios from "axios";
+"use client";
 
-// const Page = () => {
-//   const [message, setMessage] = useState("");
-//   const [messages, setMessages] = useState([]);
-//   const [questions, setQuestions] = useState("");
-//   const router = useRouter();
+import React, { useState } from "react";
+import axios, { AxiosError } from "axios";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { CardHeader, CardContent, Card } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import * as z from "zod";
+import { ApiResponse } from "@/types/ApiResponse";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { MessageSchema } from "@/schemas/messageSchema";
 
-//   const userId = "example-user-id"; // Replace with actual user ID logic
+const specialChar = "||";
 
-//   const handleSendMessage = async () => {
-//     try {
-//       const response = await axios.post("/api/messages", {
-//         userId,
-//         content: message,
-//       });
-//       setMessages([...messages, response.data]);
-//       setMessage("");
-//     } catch (error) {
-//       console.error("Error sending message:", error);
-//     }
-//   };
+const parseStringMessages = (messageString: string = ""): string[] => {
+  console.log("Parsing messages:", messageString); // Debugging: Log the message string
+  return messageString.split(specialChar);
+};
 
-//   const handleGenerateQuestions = async () => {
-//     try {
-//       const response = await axios.get("/api/generate-questions");
-//       setQuestions(response.data.questions);
-//     } catch (error) {
-//       console.error("Error generating questions:", error);
-//     }
-//   };
+const initialMessageString =
+  "What's your favorite movie?||Do you have any pets?||What's your dream job?";
 
-//   return (
-//     <div className="container mx-auto p-4">
-//       {/* Public Profile Link Section */}
-//       <div className="mb-8">
-//         <h1 className="text-2xl font-bold mb-4">Public Profile Link</h1>
-//         <div className="mb-4">
-//           <input
-//             type="text"
-//             value={message}
-//             onChange={(e) => setMessage(e.target.value)}
-//             placeholder="Send Anonymous Message"
-//             className="border p-2 w-full rounded-lg"
-//           />
-//           <button
-//             onClick={handleSendMessage}
-//             className="bg-blue-500 text-white p-2 rounded-lg mt-2"
-//           >
-//             Send it
-//           </button>
-//         </div>
-//         <div className="mb-4">
-//           <h2 className="text-xl font-semibold">Messages</h2>
-//           <ul>
-//             {messages.map((msg, index) => (
-//               <li key={index} className="border-b p-2">
-//                 {msg.content}
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
-//         <button
-//           onClick={() => router.push("/signup")}
-//           className="bg-green-500 text-white p-2 rounded-lg"
-//         >
-//           Create Account
-//         </button>
-//       </div>
+export default function SendMessage() {
+  const params = useParams<{ username: string }>();
+  if (!params) {
+    // Handle the case where params is null, e.g., show an error message or return early
+    return <div>Error: Username not found</div>;
+  }
+  const username = params.username;
 
-//       {/* AI Generated Questions Section */}
-//       <div>
-//         <h1 className="text-2xl font-bold mb-4">AI Generated Questions</h1>
-//         <button
-//           onClick={handleGenerateQuestions}
-//           className="bg-blue-500 text-white p-2 rounded-lg mb-4"
-//         >
-//           Generate Questions
-//         </button>
-//         <div className="border p-4 rounded-lg">
-//           {questions ? (
-//             <p>{questions}</p>
-//           ) : (
-//             <p className="text-gray-500">
-//               Click "Generate Questions" to see AI-generated questions.
-//             </p>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
+  const form = useForm<z.infer<typeof MessageSchema>>({
+    resolver: zodResolver(MessageSchema),
+  });
 
-// export default Page;
+  const messageContent = form.watch("content");
+
+  const handleMessageClick = (message: string) => {
+    form.setValue("content", message);
+  };
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedMessages, setGeneratedMessages] = useState(initialMessageString);
+
+  const onSubmit = async (data: z.infer<typeof MessageSchema>) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post<ApiResponse>("/api/send-message", {
+        ...data,
+        username,
+      });
+
+      toast({
+        title: response.data.message,
+        variant: "default",
+      });
+      form.reset({ ...form.getValues(), content: "" });
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      toast({
+        title: "Error",
+        description:
+          axiosError.response?.data.message ?? "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateQuestions = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await axios.get<ApiResponse>("/api/suggest-questions");
+
+      // Check if the response data is valid JSON
+      if (response.data && typeof response.data === 'object') {
+        console.log("API Response:", response.data); // Debugging: Log the API response
+        setGeneratedMessages(response.data.message);
+        toast({
+          title: "Questions Generated",
+          description: "New questions have been generated using AI.",
+          variant: "default",
+        });
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      if (axiosError.response?.status === 404) {
+        toast({
+          title: "Error",
+          description: "API endpoint not found.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: axiosError.response?.data.message ?? "Failed to generate questions",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto my-8 p-6 bg-white rounded max-w-4xl">
+      <h1 className="text-4xl font-bold mb-6 text-center">
+        Public Profile Link
+      </h1>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Send Anonymous Message to @{username}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Write your anonymous message here"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-center">
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please wait
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isLoading || !messageContent}>
+                Send It
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+
+      <div className="space-y-4 my-8">
+        <div className="space-y-2">
+          <p>Click on any message below to select it.</p>
+          <Button
+            onClick={() => !isGenerating ? generateQuestions() : null}
+            disabled={isGenerating}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              "Generate Questions using AI"
+            )}
+          </Button>
+        </div>
+        <Card>
+          <CardHeader>
+            <h3 className="text-xl font-semibold">Demo Messages</h3>
+          </CardHeader>
+          <CardContent className="flex flex-col space-y-4">
+            {parseStringMessages(generatedMessages).map((message, index) => (
+              <Button
+                className="bg-gray-100 hover:bg-gray-200 text-black"
+                key={index}
+                onClick={() => handleMessageClick(message)}
+              >
+                {message}
+              </Button>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+      <Separator className="my-6" />
+      <div className="text-center">
+        <div className="mb-4">Get Your Message Board</div>
+        <Link href={"/sign-up"}>
+          <Button>Create Your Account</Button>
+        </Link>
+      </div>
+    </div>
+  );
+}

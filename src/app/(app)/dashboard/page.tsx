@@ -40,7 +40,7 @@ const Page = () => {
       ]);
 
       setMessages(messagesResponse.data.messages || []);
-      setValue("acceptMessages", acceptResponse.data.isAcceptingMessage ?? false);
+      setValue("acceptMessages", acceptResponse.data.isAcceptingMessage ?? true);
 
       if (refresh) {
         toast.toast({

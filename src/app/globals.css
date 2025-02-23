@@ -4,7 +4,9 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  margin: 0; /* Ensure no default margin */
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 @layer base {
@@ -65,16 +67,7 @@ body {
 
 @layer base {
   * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/50 m-0 p-0;
   }
   body {
     @apply bg-background text-foreground;
