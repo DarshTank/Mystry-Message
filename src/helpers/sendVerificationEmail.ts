@@ -9,17 +9,25 @@ export async function sendVerificationEmail(
 ): Promise<ApiResponse> {
   try {
     await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "no-reply@darshtank.me",
       to: email,
       subject: "Mystry Message : Verification Email",
       react: VerificationEmail({ username, otp: verifyCode }),
     });
-    return { Success: true, message: "Verification Email sent Sucessfully" };
+    return {
+      Success: true,
+      message: "Verification Email sent Sucessfully",
+      aitext: "",
+    };
   } catch (emailError) {
     console.error(
       "Error sending verification email : sendVerificationEmail.ts",
       emailError
     );
-    return { Success: false, message: "Failed to send Verification Email" };
+    return {
+      Success: false,
+      message: "Failed to send Verification Email",
+      aitext: "",
+    };
   }
 }
