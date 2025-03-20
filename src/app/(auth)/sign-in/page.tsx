@@ -83,11 +83,11 @@ const page = () => {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email/Username</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="Email/Username"
+                      placeholder="Email"
                       {...field}
                     />
                   </FormControl>

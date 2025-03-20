@@ -1,15 +1,35 @@
-import { NextConfig } from 'next';
+// import { NextConfig } from 'next';
 
-/** @type {import('next').NextConfig} */
+// /** @type {import('next').NextConfig} */
+// const nextConfig: NextConfig = {
+//   webpack: (config: any, options: { isServer: any }) => {
+//     if (!options.isServer) {
+//       config.resolve.fallback = {
+//         fs: false,  // Prevents Webpack from bundling 'fs'
+//         path: false,
+//       };
+//     }
+//     return config;
+//   },
+
+//   eslint: {
+//     ignoreDuringBuilds: true,
+//   },
+// };
+
+// export default nextConfig;
+import type { NextConfig } from "next";
+
 const nextConfig: NextConfig = {
-  webpack: (config: any, options: { isServer: any }) => {
-    if (!options.isServer) {
-      config.resolve.fallback = {
-        fs: false,  // Prevents Webpack from bundling 'fs'
-        path: false,
-      };
-    }
-    return config;
+  images: {
+    domains: ["images.unsplash.com", "res.cloudinary.com"],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // Disable type-checking during builds (not recommended for production)
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 

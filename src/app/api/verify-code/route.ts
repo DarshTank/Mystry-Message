@@ -1,63 +1,66 @@
 import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/model/User.model";
-import { z } from "zod";
-import { usernameValidation } from "@/schemas/signUpSchema";
+import userModel from "@/model/User.model";
 
 export async function POST(request: Request) {
   await dbConnect();
-  try {
-    const { username, code } = await request.json();
 
+  try {
+    const { username, verifyCode } = await request.json();
+
+    // post generally send in encoded format
     const decodedUsername = decodeURIComponent(username);
-    const user = await UserModel.findOne({ username: decodedUsername });
+    const user = await userModel.findOne({ username: decodedUsername });
 
     if (!user) {
       return Response.json(
         {
           success: false,
-          message: "User not found : verify-code",
+          message: "user not found",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
-    const isCodeValid = user.verifyCode === code;
+    // now to compare otp
+    const isCodeValid = user.verifyCode === verifyCode;
     const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
-    if (isCodeValid && isCodeNotExpired) {
+    if (isCodeNotExpired && isCodeValid) {
       user.isVerified = true;
       await user.save();
       return Response.json(
         {
           success: true,
-          message: "Account Verified Sucessfully : verify-code",
+          message: "user is verified",
         },
         { status: 200 }
       );
     } else if (!isCodeNotExpired) {
+      // if code date is expired
       return Response.json(
         {
           success: false,
-          message:
-            "Verification Code has Expired please sign-up again to get new code : verify-code",
+          message: "code is expired please sign up again to verify code",
         },
-        { status: 500 }
+        { status: 400 }
       );
     } else {
       return Response.json(
         {
           success: false,
-          message: "Incorrect Verification Code : verify-code",
+          message: "code is incorrect please fill it carefully",
         },
-        { status: 500 }
+        { status: 400 }
       );
     }
   } catch (error) {
-    console.error("Error verifying user : verify-code", error);
+    console.log("error verifing code", error);
     return Response.json(
       {
         success: false,
-        message: "Error verifying user: verify-code",
+        message: "error verifying code ",
       },
       { status: 500 }
     );
