@@ -16,7 +16,7 @@ const Navbar = () => {
           className="text-3xl md:text-4xl font-bold mb-4 md:mb-0 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 custom-font"
           href="#"
         >
-          Mystry Message
+          Mystery Message
         </a>
         {session ? (
           <div className="flex items-center space-x-4">
